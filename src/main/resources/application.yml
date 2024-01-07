@@ -1,0 +1,47 @@
+server:
+  port: 9010
+
+spring:
+  application:
+    name: bank-messaging-service
+  cloud:
+    function:
+      definition: email|sms
+    stream:
+      defaultBinder: rabbitMQ
+
+      bindings:
+        emailsms-in-0: # Input Destination Binding
+          destination: send-communication # Queue name
+          group: ${spring.application.name}
+          binder: kafka
+        emailsms-out-0: # 0 is the starting index value
+          destination: ack-communication # As it is output (producer), update-communication will be an exchange nane
+          binder: rabbitMQ
+      binders:
+        rabbitMQ:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: localhost
+                port: 5672
+                username: guest
+                password: guest
+                connection-timeout: 10s
+        kafka:
+          type: kafka
+          environment:
+            spring:
+              cloud:
+                stream:
+                  kafka:
+                    binder:
+                      brokers:
+                        - localhost:9092
+      # Below code only if kafka binders is used in pom.xml
+#      kafka:
+#        binder:
+#          brokers:
+#            - localhost:9092
+
